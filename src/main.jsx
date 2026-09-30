@@ -8,18 +8,27 @@ const IMG = 'https://cdn.jsdelivr.net/gh/hfg-gmuend/openmoji@17.0.0/color/svg/'
 const image = (code) => `${IMG}${code}.svg`
 const availableFor = (phaseId) => foods.filter((food) => food.phases.includes(phaseId))
 
-function evaluate(phase, selectedFoods) {
+const hydrationByPhase = {
+  breakfast: { title: 'Voda k snídani', text: 'Pij průběžně s jídlem. Pro děti je vhodné mít vodu stále po ruce; menší sklenice může mít zhruba 150–200 ml.', note: 'Potřeba se liší podle věku, velikosti, teploty a aktivity.' },
+  early: { title: 'Pití před zápasem', text: 'Pij průběžně, ne velké množství najednou. Orientační sportovní doporučení používají asi 5–7 ml/kg tekutin 2–4 hodiny před výkonem.', note: 'Je to orientační hodnota, ne povinná dávka pro každé dítě.' },
+  close: { title: 'Těsně před zápasem', text: 'Dej si jen menší doušky podle žízně a tolerance. Není potřeba do dítěte těsně před zápasem nalít velké množství vody.', note: 'Velký objem těsně před výkonem může být nepříjemný.' },
+  between: { title: 'Pití během turnaje', text: 'Měj láhev stále po ruce a pij menší množství pravidelně. AAP uvádí při intenzivním sportu orientačně 90–120 ml každých 15 minut.', note: 'Není cílem vypít co nejvíc. Potřeba závisí na dítěti, pocení, délce zápasu a teplotě.' },
+  recovery: { title: 'Doplň tekutiny po výkonu', text: 'Po výkonu pij postupně. Pokud znáš úbytek hmotnosti po výkonu, sportovní doporučení používají přibližně 1,25–1,5 l tekutin na každý 1 kg ztracené hmotnosti.', note: 'Bez znalosti ztráty tekutin je praktičtější pravidelně pít a sledovat žízeň a barvu moči.' },
+}
+
+function evaluate(phase, selectedFoods, betweenMinutes) {
   const guidance = phaseGuidance[phase.id]
   const hasCarb = selectedFoods.some((food) => food.tags.includes('carb'))
   const hasProtein = selectedFoods.some((food) => food.tags.includes('protein'))
   const easyFoods = selectedFoods.filter((food) => food.tags.includes('easy')).length
+  const dynamicMax = phase.id === 'between'
+    ? betweenMinutes < 30 ? 1 : betweenMinutes <= 60 ? 2 : betweenMinutes <= 120 ? 3 : 3
+    : guidance.maxItems
 
   if (!selectedFoods.length) return { state: 'empty', title: 'Krabička čeká', text: 'Vyber vhodnou potravinu pro tuto část dne.' }
 
-  // MVP guard: more foods should not automatically mean a better meal.
-  // Individual portions/energy needs will be added later with age and body-size data.
-  if (selectedFoods.length > guidance.maxItems) {
-    return { state: 'bad', title: '× Už je toho moc', text: guidance.tooMuchText }
+  if (selectedFoods.length > dynamicMax) {
+    return { state: 'bad', title: '× Už je toho moc', text: phase.id === 'between' ? `Za ${betweenMinutes} minut hraješ znovu. Zvol raději lehčí variantu.` : guidance.tooMuchText }
   }
 
   if (phase.id === 'close') {
@@ -45,16 +54,17 @@ function evaluate(phase, selectedFoods) {
   }
 
   if (!hasCarb) return { state: 'bad', title: '× Málo sacharidů', text: 'Při turnaji je potřeba průběžně doplňovat energii. Pokud je další zápas brzy, vyber lehkou variantu.' }
-  return { state: 'ok', title: '✓ Vhodně poskládané', text: 'Máš zdroj sacharidů. Velikost a kombinaci přizpůsob času do dalšího zápasu a hladu.' }
+  return { state: 'ok', title: '✓ Vhodně poskládané', text: `Další zápas je za ${betweenMinutes} minut. Zvolená svačina odpovídá této pauze.` }
 }
 
 function App() {
   const [activePhase, setActivePhase] = useState('breakfast')
   const [selected, setSelected] = useState({})
   const [message, setMessage] = useState('')
+  const [betweenMinutes, setBetweenMinutes] = useState(60)
   const phase = nutritionPhases.find((item) => item.id === activePhase)
   const selectedFoods = selected[activePhase] || []
-  const evaluation = useMemo(() => evaluate(phase, selectedFoods), [phase, selectedFoods])
+  const evaluation = useMemo(() => evaluate(phase, selectedFoods, betweenMinutes), [phase, selectedFoods, betweenMinutes])
   const availableFoods = availableFor(activePhase)
   const selectedCount = Object.values(selected).reduce((total, list) => total + list.length, 0)
   const globalCounts = Object.values(selected).flat().reduce((acc, food) => ({ ...acc, [food.id]: (acc[food.id] || 0) + 1 }), {})
@@ -80,6 +90,7 @@ function App() {
   )
 
   const selectedIds = new Set(selectedFoods.map((food) => food.id))
+  const hydration = hydrationByPhase[activePhase]
 
   return (
     <main className="app-shell">
@@ -104,6 +115,7 @@ function App() {
         </div>
       </section>
       <section className="picker-section">
+        {activePhase === 'between' && <div className="rule-card" style={{ marginBottom: 18 }}><span>⏱</span><div><strong>Za jak dlouho hraješ znovu?</strong><div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>{[20, 45, 60, 90, 120, 180].map((minutes) => <button key={minutes} onClick={() => setBetweenMinutes(minutes)} style={{ border: 0, borderRadius: 999, padding: '8px 13px', fontWeight: 700, background: minutes === betweenMinutes ? '#18395f' : '#eef2f6', color: minutes === betweenMinutes ? '#fff' : '#18395f' }}>{minutes >= 60 ? `${minutes / 60} h` : `${minutes} min`}</button>)}</div><p style={{ marginTop: 8 }}>Podle pauzy aplikace upraví doporučenou velikost svačiny.</p></div></div>}
         <div className="picker-title"><div><span className="eyebrow">VYBER POTRAVINY</span><h2>{phase.title}</h2><p>{phase.rule}</p></div><span className="selected-count">{selectedFoods.length} vybráno</span></div>
         <div className="food-grid">
           {availableFoods.map((food) => <button key={food.id} className={`food-option ${selectedIds.has(food.id) ? 'chosen' : ''}`} onClick={() => toggleFood(food)}>
@@ -113,6 +125,7 @@ function App() {
         </div>
         {message && <div className="rule-card"><span>↔</span><div><strong>Pro pestrost</strong><p>{message}</p></div></div>}
         <div className={`nutrition-result ${evaluation.state}`}><div className="result-icon">{evaluation.state === 'ok' ? '✓' : evaluation.state === 'bad' ? '×' : '—'}</div><div><strong>{evaluation.title}</strong><p>{evaluation.text}</p></div></div>
+        <div className="rule-card hydration-card"><span>💧</span><div><strong>{hydration.title}</strong><p>{hydration.text}</p><small>{hydration.note}</small></div></div>
       </section>
       <section className="rule-card"><span>i</span><div><strong>Jak aplikace přemýšlí</strong><p>{phase.rule} Hodnocení je orientační a nepočítá individuální energetickou potřebu dítěte. Potraviny je vhodné vyzkoušet nejdříve při tréninku, ne poprvé v den turnaje.</p></div></section>
       <footer>FuelBox · jednoduché plánování sportovní výživy pro mladé sportovce</footer>
