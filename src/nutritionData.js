@@ -2,7 +2,7 @@ export const nutritionPhases = [
   { id: 'breakfast', kicker: 'RÁNO', title: 'Snídaně', subtitle: 'Základ pro sportovní den', rule: 'Větší jídlo s výrazným podílem sacharidů. Přidej bílkovinu a tekutiny podle chuti a tolerance.' },
   { id: 'early', kicker: 'PŘED VÝKONEM', title: '1–2 h před zápasem', subtitle: 'Lehká sacharidová svačina', rule: 'Lehká, známá a dobře stravitelná volba. Jedna potravina nebo malá kombinace může úplně stačit.' },
   { id: 'close', kicker: 'TĚSNĚ PŘED', title: '30–60 min před', subtitle: 'Malé doplnění energie', rule: 'Není potřeba velká svačina. Jedna lehká sacharidová volba může být dostačující.' },
-  { id: 'between', kicker: 'TURNaj', title: 'Mezi zápasy', subtitle: 'Podle času do dalšího zápasu', rule: 'Krátká pauza = lehčí volba. Při delší pauze je prostor pro větší svačinu nebo malé jídlo.' },
+  { id: 'between', kicker: 'TURNaj', title: 'Mezi zápasy', subtitle: 'Nejdřív řekni, za jak dlouho hraješ znovu', rule: 'Krátká pauza = lehčí volba. Při delší pauze je prostor pro větší svačinu nebo malé jídlo.' },
   { id: 'recovery', kicker: 'REGENERACE', title: 'Po posledním zápase', subtitle: 'Energie + bílkoviny + tekutiny', rule: 'Po výkonu kombinuj sacharidy a zdroj bílkovin. Velikost přizpůsob hladu a tomu, kdy bude další jídlo.' },
 ]
 
@@ -60,9 +60,9 @@ export const foods = [
 ]
 
 export const phaseGuidance = {
-  breakfast: { requireCarb: true, preferProtein: false, maxItems: 4, tooMuchText: 'Na jednu snídani už máš příliš mnoho různých položek. Vyber hlavní zdroj sacharidů, případně jednu bílkovinnou složku a ovoce podle chuti.' },
+  breakfast: { requireCarb: true, preferProtein: false, maxItems: 3, tooMuchText: 'Na jednu snídani už máš příliš mnoho různých položek. Vyber hlavní zdroj sacharidů, případně jednu bílkovinnou složku a ovoce podle chuti.' },
   early: { requireCarb: true, preferProtein: false, maxItems: 2, tooMuchText: '1–2 hodiny před zápasem není potřeba skládat velkou svačinu. Jedna až dvě vhodné položky obvykle stačí.' },
   close: { requireCarb: true, preferProtein: false, maxItems: 1, tooMuchText: '30–60 minut před zápasem už není potřeba velká svačina. Jedna lehká sacharidová volba může úplně stačit.' },
-  between: { requireCarb: true, preferProtein: false, maxItems: 3, tooMuchText: 'Tohle už je na jednu svačinu zbytečně mnoho. Podle délky pauzy vyber lehkou svačinu, nebo při delší pauze malé jídlo.' },
-  recovery: { requireCarb: true, requireProtein: true, maxItems: 4, tooMuchText: 'Na regeneraci není potřeba skládat všechno najednou. Vyber zdroj sacharidů a bílkoviny a velikost přizpůsob hladu a dalšímu jídlu.' },
+  between: { requireCarb: true, preferProtein: false, maxItems: 3, tooMuchText: 'Počet položek sám o sobě neurčuje správnou porci. Nejprve nastav čas do dalšího zápasu a podle něj vyber lehkou svačinu nebo malé jídlo.' },
+  recovery: { requireCarb: true, requireProtein: true, maxItems: 3, tooMuchText: 'Na regeneraci není potřeba skládat všechno najednou. Vyber zdroj sacharidů a bílkoviny a velikost přizpůsob hladu a dalšímu jídlu.' },
 }
