@@ -100,11 +100,11 @@ function App() {
         {nutritionPhases.map((item) => <button key={item.id} className={item.id === activePhase ? 'active' : ''} onClick={() => { setActivePhase(item.id); setMessage('') }}><span>{item.kicker}</span><strong>{item.title}</strong></button>)}
       </nav>
       <section className="box-section">
-        <div className="section-heading"><div><span className="eyebrow">{phase.kicker}</span><h2>{phase.title}</h2><p>{phase.subtitle}</p></div><span className={`status-pill ${evaluation.state}`}>{evaluation.state === 'ok' ? '✓' : evaluation.state === 'bad' ? '×' : '—'}</span></div>
+        <div className="section-heading"><div><span className="eyebrow">{phase.kicker}</span><h2>{phase.title}</h2><p>{phase.id === 'breakfast' ? 'Snídaně ideálně 1–2 hodiny před prvním zápasem' : phase.subtitle}</p></div><span className={`status-pill ${evaluation.state}`}>{evaluation.state === 'ok' ? '✓' : evaluation.state === 'bad' ? '×' : '—'}</span></div>
         <div className="lunchbox-real">
           <div className="lunchbox-lid"><span></span><span></span><span></span></div>
           <div className="lunchbox-body">
-            {nutritionPhases.map((item) => {
+            {nutritionPhases.filter((item) => item.id !== 'early').map((item) => {
               const items = selected[item.id] || []
               return <div key={item.id} className={`compartment ${item.id}-compartment`} onClick={() => setActivePhase(item.id)}>
                 <div className="compartment-label">{item.kicker} · {item.title}</div>
@@ -113,8 +113,8 @@ function App() {
             })}
           </div>
         </div>
+        <div className={`nutrition-result sticky-result ${evaluation.state}`}><div className="result-icon">{evaluation.state === 'ok' ? '✓' : evaluation.state === 'bad' ? '×' : '—'}</div><div><strong>{evaluation.title}</strong><p>{evaluation.text}</p></div></div>
       </section>
-      <div className={`nutrition-result ${evaluation.state}`}><div className="result-icon">{evaluation.state === 'ok' ? '✓' : evaluation.state === 'bad' ? '×' : '—'}</div><div><strong>{evaluation.title}</strong><p>{evaluation.text}</p></div></div>
       <section className="picker-section">
         {activePhase === 'between' && <div className="rule-card" style={{ marginBottom: 18 }}><span>⏱</span><div><strong>Za jak dlouho hraješ znovu?</strong><div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>{[20, 45, 60, 90, 120, 180].map((minutes) => <button key={minutes} onClick={() => setBetweenMinutes(minutes)} style={{ border: 0, borderRadius: 999, padding: '8px 13px', fontWeight: 700, background: minutes === betweenMinutes ? '#18395f' : '#eef2f6', color: minutes === betweenMinutes ? '#fff' : '#18395f' }}>{minutes >= 60 ? `${minutes / 60} h` : `${minutes} min`}</button>)}</div><p style={{ marginTop: 8 }}>Podle pauzy aplikace upraví doporučenou velikost svačiny.</p></div></div>}
         <div className="picker-title"><div><span className="eyebrow">VYBER POTRAVINY</span><h2>{phase.title}</h2><p>{phase.rule}</p></div><span className="selected-count">{selectedFoods.length} vybráno</span></div>
