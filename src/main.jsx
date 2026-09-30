@@ -19,7 +19,6 @@ function evaluate(phase, selectedFoods, betweenMinutes) {
   const guidance = phaseGuidance[phase.id]
   const hasCarb = selectedFoods.some((food) => food.tags.includes('carb'))
   const hasProtein = selectedFoods.some((food) => food.tags.includes('protein'))
-  const easyFoods = selectedFoods.filter((food) => food.tags.includes('easy')).length
   const dynamicMax = phase.id === 'between' ? betweenMinutes < 30 ? 1 : betweenMinutes <= 60 ? 2 : betweenMinutes <= 120 ? 3 : 3 : guidance.maxItems
   if (!selectedFoods.length) return { state: 'empty', title: 'Krabička čeká', text: 'Vyber vhodnou potravinu pro tuto část dne.' }
   if (selectedFoods.length > dynamicMax) return { state: 'bad', title: '× Už je toho moc', text: phase.id === 'between' ? `Za ${betweenMinutes} minut hraješ znovu. Zvol raději lehčí variantu.` : guidance.tooMuchText }
@@ -85,10 +84,10 @@ function App() {
       <div className="section-heading"><div><span className="eyebrow">{phase.kicker}</span><h2>{phase.title}</h2><p>{phase.id === 'breakfast' ? 'Snídaně ideálně 1–2 hodiny před prvním zápasem' : phase.subtitle}</p></div><span className={`status-pill ${evaluation.state}`}>{evaluation.state === 'ok' ? '✓' : evaluation.state === 'bad' ? '×' : '—'}</span></div>
       <div className="lunchbox-real"><div className="lunchbox-lid"><span></span><span></span><span></span></div><div className="lunchbox-body">{visiblePhases.map((item) => { const items = selected[item.id] || []; return <div key={item.id} className={`compartment ${item.id}-compartment`} onClick={() => selectPhase(item.id, true)}><div className="compartment-label">{item.kicker} · {item.title}</div><div className="food-scene">{items.length ? items.map(renderFood) : <span className="empty-plus">+</span>}</div></div> })}</div></div>
       <div className={`nutrition-result sticky-result ${evaluation.state}`}><div className="result-icon">{evaluation.state === 'ok' ? '✓' : evaluation.state === 'bad' ? '×' : '—'}</div><div><strong>{evaluation.title}</strong><p>{evaluation.text}</p></div></div>
-      {showContinue && <button className="continue-button" onClick={continueToNext}>Pokračovat na {nextPhase.title}<span>→</span></button>}
+      {showContinue && <button className="continue-button" onClick={continueToNext}>Pokračovat na další fázi<span>→</span></button>}
     </section>
     <section className="picker-section" ref={pickerRef}>
-      {activePhase === 'between' && <div className="rule-card" style={{ marginBottom: 18 }}><span>⏱</span><div><strong>Za jak dlouho hraješ znovu?</strong><div className="time-options">{[20, 45, 60, 90, 120, 180].map((minutes) => <button key={minutes} onClick={() => setBetweenMinutes(minutes)}>{minutes >= 60 ? `${minutes / 60} h` : `${minutes} min`}</button>)}</div><p>Podle pauzy aplikace upraví doporučenou velikost svačiny.</p></div></div>}
+      {activePhase === 'between' && <div className="rule-card" style={{ marginBottom: 18 }}><span>⏱</span><div><strong>Za jak dlouho hraješ znovu?</strong><div className="time-options">{[20, 45, 60, 90, 120, 180].map((minutes) => <button key={minutes} className={betweenMinutes === minutes ? 'selected-time' : ''} onClick={() => setBetweenMinutes(minutes)}>{minutes >= 60 ? `${minutes / 60} h` : `${minutes} min`}</button>)}</div><p>Podle pauzy aplikace upraví doporučenou velikost svačiny.</p></div></div>}
       <div className="picker-title"><div><span className="eyebrow">VYBER POTRAVINY</span><h2>{phase.title}</h2><p>{phase.rule}</p></div><span className="selected-count">{selectedFoods.length} vybráno</span></div>
       <div className="food-grid">{availableFoods.map((food) => <button key={food.id} className={`food-option ${selectedIds.has(food.id) ? 'chosen' : ''}`} onClick={() => toggleFood(food)}><div className="food-photo"><img className="food-option-image" src={image(food.image)} alt="" /></div><strong>{food.name}</strong><small>{food.note}</small>{selectedIds.has(food.id) && <b>✓</b>}</button>)}</div>
       {message && <div className="rule-card"><span>↔</span><div><strong>Pro pestrost</strong><p>{message}</p></div></div>}
