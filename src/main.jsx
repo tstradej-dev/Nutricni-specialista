@@ -83,8 +83,10 @@ function App() {
     <section className="box-section">
       <div className="section-heading"><div><span className="eyebrow">{phase.kicker}</span><h2>{phase.title}</h2><p>{phase.id === 'breakfast' ? 'Snídaně ideálně 1–2 hodiny před prvním zápasem' : phase.subtitle}</p></div><span className={`status-pill ${evaluation.state}`}>{evaluation.state === 'ok' ? '✓' : evaluation.state === 'bad' ? '×' : '—'}</span></div>
       <div className="lunchbox-real"><div className="lunchbox-lid"><span></span><span></span><span></span></div><div className="lunchbox-body">{visiblePhases.map((item) => { const items = selected[item.id] || []; return <div key={item.id} className={`compartment ${item.id}-compartment`} onClick={() => selectPhase(item.id, true)}><div className="compartment-label">{item.kicker} · {item.title}</div><div className="food-scene">{items.length ? items.map(renderFood) : <span className="empty-plus">+</span>}</div></div> })}</div></div>
-      <div className={`nutrition-result sticky-result ${evaluation.state}`}><div className="result-icon">{evaluation.state === 'ok' ? '✓' : evaluation.state === 'bad' ? '×' : '—'}</div><div><strong>{evaluation.title}</strong><p>{evaluation.text}</p></div></div>
-      {showContinue && <button className="continue-button" onClick={continueToNext}>Pokračovat na další fázi<span>→</span></button>}
+      <div className="sticky-actions">
+        <div className={`nutrition-result sticky-result ${evaluation.state}`}><div className="result-icon">{evaluation.state === 'ok' ? '✓' : evaluation.state === 'bad' ? '×' : '—'}</div><div><strong>{evaluation.title}</strong><p>{evaluation.text}</p></div></div>
+        {showContinue && <button className="continue-button" onClick={continueToNext}>Pokračovat na další fázi<span>→</span></button>}
+      </div>
     </section>
     <section className="picker-section" ref={pickerRef}>
       {activePhase === 'between' && <div className="rule-card" style={{ marginBottom: 18 }}><span>⏱</span><div><strong>Za jak dlouho hraješ znovu?</strong><div className="time-options">{[20, 45, 60, 90, 120, 180].map((minutes) => <button key={minutes} className={betweenMinutes === minutes ? 'selected-time' : ''} onClick={() => setBetweenMinutes(minutes)}>{minutes >= 60 ? `${minutes / 60} h` : `${minutes} min`}</button>)}</div><p>Podle pauzy aplikace upraví doporučenou velikost svačiny.</p></div></div>}
