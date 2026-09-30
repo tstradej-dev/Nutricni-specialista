@@ -2,157 +2,107 @@ import React, { useMemo, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './styles.css'
 
-const foods = {
-  morning: [
-    { name: 'Ovesná kaše', icon: '🥣', carbs: 3, group: 'meal' },
-    { name: 'Banán', icon: '🍌', carbs: 2, group: 'fruit' },
-    { name: 'Rohlík s medem', icon: '🥖', carbs: 3, group: 'carb' },
-    { name: 'Jogurt s ovocem', icon: '🥛', carbs: 2, group: 'meal' },
-    { name: 'Toast s džemem', icon: '🍞', carbs: 3, group: 'carb' },
-    { name: 'Ovocná kapsička', icon: '🧃', carbs: 2, group: 'fruit' },
-  ],
-  oneHour: [
-    { name: 'Banán', icon: '🍌', carbs: 2, group: 'fruit' },
-    { name: 'Rýžové chlebíčky', icon: '🍘', carbs: 2, group: 'carb' },
-    { name: 'Preclíky', icon: '🥨', carbs: 2, group: 'carb' },
-    { name: 'Rohlík s medem', icon: '🥖', carbs: 3, group: 'carb' },
-    { name: 'Ovocná kapsička', icon: '🧃', carbs: 2, group: 'fruit' },
-    { name: 'Piškoty', icon: '🍪', carbs: 2, group: 'carb' },
-  ],
-  close: [
-    { name: 'Banán', icon: '🍌', carbs: 2, group: 'fruit' },
-    { name: 'Ovocná kapsička', icon: '🧃', carbs: 2, group: 'fruit' },
-    { name: 'Preclíky', icon: '🥨', carbs: 2, group: 'carb' },
-    { name: 'Rýžový chlebíček', icon: '🍘', carbs: 2, group: 'carb' },
-    { name: 'Piškoty', icon: '🍪', carbs: 2, group: 'carb' },
-  ],
-  between: [
-    { name: 'Banán', icon: '🍌', carbs: 2, group: 'fruit' },
-    { name: 'Preclíky', icon: '🥨', carbs: 2, group: 'carb' },
-    { name: 'Rohlík', icon: '🥖', carbs: 3, group: 'carb' },
-    { name: 'Ovocná kapsička', icon: '🧃', carbs: 2, group: 'fruit' },
-    { name: 'Jogurt s ovocem', icon: '🥛', carbs: 2, group: 'meal' },
-    { name: 'Sendvič', icon: '🥪', carbs: 3, group: 'meal' },
-  ],
-}
-
-const slots = [
-  { id: 'morning', short: 'Ráno', time: '06:00', title: 'RÁNO', subtitle: 'větší snídaně', icon: '☀️' },
-  { id: 'oneHour', short: '1 hod', time: '07:00', title: '1 HODINU PŘED', subtitle: 'lehká svačina', icon: '👟' },
-  { id: 'close', short: 'Těsně před', time: '07:30', title: 'TĚSNĚ PŘED', subtitle: 'rychlá energie', icon: '⚡' },
-  { id: 'between', short: 'Mezi zápasy', time: '09:00', title: 'MEZI ZÁPASY', subtitle: 'doplnění energie', icon: '✓' },
+const phases = [
+  { id: 'breakfast', kicker: 'RÁNO', title: 'Snídaně', subtitle: 'Základ pro sportovní den', rule: 'Větší jídlo s převahou sacharidů. Bílkovinu přidej podle běžných zvyklostí a tolerance.' },
+  { id: 'early', kicker: 'PŘED VÝKONEM', title: '1–2 h před zápasem', subtitle: 'Lehká sacharidová svačina', rule: 'Vyber něco známého, lehkého a dobře stravitelného. Nemusíš kombinovat několik potravin.' },
+  { id: 'close', kicker: 'TĚSNĚ PŘED', title: '30–60 min před', subtitle: 'Malé doplnění energie', rule: 'Jedna lehká sacharidová volba může úplně stačit. Není potřeba jíst banán a ještě něco navíc.' },
+  { id: 'between', kicker: 'TURNaj', title: 'Mezi zápasy', subtitle: 'Doplň podle času do dalšího zápasu', rule: 'Při delší pauze je prostor pro větší svačinu. Při krátké pauze vol lehčí sacharidovou variantu.' },
+  { id: 'recovery', kicker: 'REGENERACE', title: 'Po posledním zápase', subtitle: 'Doplň energii a bílkoviny', rule: 'Po výkonu mysli na sacharidy, bílkovinu a tekutiny.' },
 ]
 
-function statusFor(slotId, selected) {
-  const items = selected[slotId] || []
-  if (!items.length) return { state: 'empty', title: 'Krabička čeká', text: 'Vyber potraviny vhodné pro tuto část dne.' }
-  const carbs = items.reduce((sum, item) => sum + item.carbs, 0)
-  const needsMore = slotId !== 'close' && carbs < 3
-  if (needsMore) return { state: 'warning', title: 'Ještě něco chybí', text: 'Svačina má zatím málo sacharidů. Přidej ještě jednu vhodnou položku.' }
-  return { state: 'ok', title: 'Dobře složená svačina', text: 'Výběr odpovídá této části turnajového dne.' }
+const foods = [
+  { id: 'banana', name: 'Banán', icon: '🍌', tags: ['carb', 'easy'], phases: ['breakfast', 'early', 'close', 'between'], note: 'jednoduchá energie' },
+  { id: 'apple', name: 'Jablko', icon: '🍎', tags: ['carb', 'fruit'], phases: ['breakfast', 'early', 'between'], note: 'podle tolerance' },
+  { id: 'grapes', name: 'Hroznové víno', icon: '🍇', tags: ['carb', 'easy'], phases: ['breakfast', 'early', 'close', 'between'], note: 'praktické do krabičky' },
+  { id: 'mandarin', name: 'Mandarinka', icon: '🍊', tags: ['carb', 'fruit'], phases: ['breakfast', 'early', 'between'], note: 'lehká ovocná volba' },
+  { id: 'berries', name: 'Jahody / borůvky', icon: '🫐', tags: ['carb', 'fruit'], phases: ['breakfast', 'early', 'between'], note: 'lehká porce' },
+  { id: 'melon', name: 'Meloun', icon: '🍉', tags: ['carb', 'fruit'], phases: ['breakfast', 'early', 'between'], note: 'osvěžující volba' },
+  { id: 'applesauce', name: 'Přesnídávka', icon: '🥣', tags: ['carb', 'easy'], phases: ['early', 'close', 'between'], note: 'praktická na cestu' },
+  { id: 'pretzels', name: 'Preclíky', icon: '🥨', tags: ['carb', 'easy'], phases: ['breakfast', 'early', 'close', 'between'], note: 'lehké sacharidy' },
+  { id: 'ricecakes', name: 'Rýžové chlebíčky', icon: '🍘', tags: ['carb', 'easy'], phases: ['breakfast', 'early', 'close', 'between'], note: 'lehké a křupavé' },
+  { id: 'toast-honey', name: 'Toast + med', icon: '🍞', tags: ['carb', 'easy'], phases: ['breakfast', 'early', 'close', 'between'], note: 'rychlá energie' },
+  { id: 'roll-jam', name: 'Rohlík + džem', icon: '🥖', tags: ['carb', 'easy'], phases: ['breakfast', 'early', 'between'], note: 'jednoduchá klasika' },
+  { id: 'cereal', name: 'Cereálie + mléko', icon: '🥣', tags: ['carb', 'protein'], phases: ['breakfast', 'early'], note: 'vhodné spíš s odstupem' },
+  { id: 'oatmeal', name: 'Ovesná kaše', icon: '🥣', tags: ['carb', 'protein'], phases: ['breakfast'], note: 'větší snídaně' },
+  { id: 'pancakes', name: 'Palačinky + ovoce', icon: '🥞', tags: ['carb'], phases: ['breakfast'], note: 'větší snídaně' },
+  { id: 'sandwich', name: 'Lehký sendvič', icon: '🥪', tags: ['carb', 'protein'], phases: ['breakfast', 'between', 'recovery'], note: 'při delší pauze' },
+  { id: 'wrap', name: 'Lehká tortilla', icon: '🌯', tags: ['carb', 'protein'], phases: ['breakfast', 'between', 'recovery'], note: 'větší svačina' },
+  { id: 'yogurt-fruit', name: 'Jogurt + ovoce', icon: '🥛', tags: ['carb', 'protein'], phases: ['breakfast', 'between', 'recovery'], note: 'když je více času' },
+  { id: 'rice-chicken', name: 'Rýže + kuře', icon: '🍚', tags: ['carb', 'protein'], phases: ['between', 'recovery'], note: 'větší jídlo' },
+  { id: 'chocolate-milk', name: 'Kakaové mléko', icon: '🥛', tags: ['carb', 'protein'], phases: ['between', 'recovery'], note: 'praktická regenerace' },
+  { id: 'flavoured-yogurt', name: 'Ochucený jogurt', icon: '🍶', tags: ['carb', 'protein'], phases: ['between', 'recovery'], note: 'sacharidy + bílkovina' },
+  { id: 'milk', name: 'Mléko', icon: '🥛', tags: ['protein'], phases: ['breakfast', 'recovery'], note: 'doplněk k jídlu' },
+]
+
+const availableFor = (phaseId) => foods.filter((food) => food.phases.includes(phaseId))
+
+function evaluate(phase, selectedFoods) {
+  const hasCarb = selectedFoods.some((food) => food.tags.includes('carb'))
+  const hasProtein = selectedFoods.some((food) => food.tags.includes('protein'))
+  if (!selectedFoods.length) return { state: 'empty', title: 'Krabička čeká', text: 'Vyber jednu nebo více vhodných potravin.' }
+  if (phase.id === 'close') return hasCarb
+    ? { state: 'ok', title: '✓ Vhodná svačina', text: 'Ano. Banán nebo jiná jedna lehká sacharidová volba může před zápasem stačit.' }
+    : { state: 'bad', title: '× Málo sacharidů', text: 'Těsně před výkonem chceme hlavně lehce dostupnou energii.' }
+  if (phase.id === 'early') return hasCarb
+    ? { state: 'ok', title: '✓ Vhodná svačina', text: 'Lehká sacharidová svačina je pro tento čas vhodná.' }
+    : { state: 'bad', title: '× Málo sacharidů', text: 'Přidej lehký zdroj sacharidů.' }
+  if (phase.id === 'recovery') return hasCarb && hasProtein
+    ? { state: 'ok', title: '✓ Dobře složené', text: 'Máš sacharidy i bílkovinu. Nezapomeň také doplnit tekutiny.' }
+    : { state: 'bad', title: hasCarb ? '× Chybí bílkovina' : '× Málo sacharidů', text: hasCarb ? 'Po výkonu přidej také zdroj bílkovin.' : 'Po výkonu doplň sacharidy a přidej bílkovinu.' }
+  if (phase.id === 'breakfast') return hasCarb
+    ? { state: 'ok', title: '✓ Dobrá snídaně', text: hasProtein ? 'Sacharidy i bílkovina jsou zastoupené.' : 'Sacharidy máš. Bílkovinu můžeš přidat podle chuti a tolerance.' }
+    : { state: 'bad', title: '× Málo sacharidů', text: 'Snídaně před sportovním dnem by měla mít výrazný zdroj sacharidů.' }
+  return hasCarb
+    ? { state: 'ok', title: '✓ Vhodná svačina', text: 'Máš zdroj sacharidů. Velikost přizpůsob pauze a hladu.' }
+    : { state: 'bad', title: '× Málo sacharidů', text: 'Při turnaji je potřeba průběžně doplňovat energii ze sacharidů.' }
 }
 
 function App() {
-  const [step, setStep] = useState('setup')
-  const [activeSlot, setActiveSlot] = useState('oneHour')
-  const [selected, setSelected] = useState({ morning: [], oneHour: [], close: [], between: [] })
-  const [start, setStart] = useState('08:00')
-  const [end, setEnd] = useState('14:00')
-  const [age, setAge] = useState('9')
-  const [sport, setSport] = useState('Florbal')
-
-  const active = slots.find((slot) => slot.id === activeSlot)
-  const status = useMemo(() => statusFor(activeSlot, selected), [activeSlot, selected])
+  const [activePhase, setActivePhase] = useState('breakfast')
+  const [selected, setSelected] = useState({})
+  const phase = phases.find((item) => item.id === activePhase)
+  const selectedFoods = selected[activePhase] || []
+  const evaluation = useMemo(() => evaluate(phase, selectedFoods), [phase, selectedFoods])
+  const availableFoods = availableFor(activePhase)
+  const selectedCount = Object.values(selected).reduce((total, list) => total + list.length, 0)
 
   const toggleFood = (food) => {
     setSelected((current) => {
-      const currentItems = current[activeSlot] || []
-      const exists = currentItems.some((item) => item.name === food.name)
-      return {
-        ...current,
-        [activeSlot]: exists ? currentItems.filter((item) => item.name !== food.name) : [...currentItems, food],
-      }
+      const list = current[activePhase] || []
+      const exists = list.some((item) => item.id === food.id)
+      return { ...current, [activePhase]: exists ? list.filter((item) => item.id !== food.id) : [...list, food] }
     })
   }
 
-  const removeFood = (name) => {
-    setSelected((current) => ({
-      ...current,
-      [activeSlot]: current[activeSlot].filter((item) => item.name !== name),
-    }))
-  }
-
-  if (step === 'setup') {
-    return (
-      <main className="app-shell setup-shell">
-        <div className="brand-mark">FUEL<span>BOX</span></div>
-        <section className="hero">
-          <div className="eyebrow">SPORTOVNÍ VÝŽIVA BEZ SLOŽITOSTÍ</div>
-          <h1>Slož si<br /><em>krabičku.</em></h1>
-          <p>Vyber, kdy hraješ. My ti ukážeme, co se hodí jíst před zápasem a mezi zápasy.</p>
-        </section>
-        <section className="setup-card">
-          <label>Sport</label>
-          <div className="input-row"><span>🏑</span><select value={sport} onChange={(e) => setSport(e.target.value)}><option>Florbal</option><option>Fotbal</option><option>Hokej</option><option>Basketbal</option></select></div>
-          <div className="two-cols">
-            <div><label>Věk sportovce</label><div className="input-row"><span>🎂</span><input value={age} onChange={(e) => setAge(e.target.value)} inputMode="numeric" /><small>let</small></div></div>
-            <div><label>První zápas</label><div className="input-row"><span>🕐</span><input type="time" value={start} onChange={(e) => setStart(e.target.value)} /></div></div>
-          </div>
-          <label>Konec turnaje</label>
-          <div className="input-row"><span>🏁</span><input type="time" value={end} onChange={(e) => setEnd(e.target.value)} /></div>
-          <div className="game-preview"><span>4 zápasy</span><span>30 min</span><span>8:00 · 9:30 · 11:00 · 12:30</span></div>
-          <button className="primary" onClick={() => setStep('plan')}>Složit krabičku <span>→</span></button>
-        </section>
-        <p className="fine-print">Orientační průvodce pro sportovní den. Vybírej potraviny, které sportovec běžně dobře snáší.</p>
-      </main>
-    )
-  }
-
   return (
-    <main className="app-shell plan-shell">
-      <header className="topbar"><button className="back" onClick={() => setStep('setup')}>←</button><div className="brand-mark">FUEL<span>BOX</span></div><button className="more">•••</button></header>
-      <section className="plan-header"><div><div className="eyebrow">TURNAJ · {sport.toUpperCase()}</div><h1>Moje <em>krabička.</em></h1><p>{age} let · {start}–{end} · 4 zápasy</p></div></section>
+    <main className="app-shell">
+      <header className="topbar"><div className="brand-mark">FUEL<span>BOX</span></div><div className="top-count">{selectedCount} položek</div></header>
 
-      <nav className="time-tabs" aria-label="Části turnajového dne">
-        {slots.map((slot) => <button key={slot.id} className={activeSlot === slot.id ? 'active' : ''} onClick={() => setActiveSlot(slot.id)}><span>{slot.icon}</span><strong>{slot.short}</strong><small>{slot.time}</small></button>)}
+      <section className="intro"><span className="eyebrow">SPORTOVNÍ DEN</span><h1>Poskládej<br /><em>krabičku.</em></h1><p>Vyber jídlo pro jednotlivé části dne. Aplikace ti jednoduše ukáže, jestli je svačina pro daný okamžik vhodně složená.</p></section>
+
+      <nav className="phase-tabs" aria-label="Části sportovního dne">
+        {phases.map((item) => <button key={item.id} className={item.id === activePhase ? 'active' : ''} onClick={() => setActivePhase(item.id)}><span>{item.kicker}</span><strong>{item.title}</strong></button>)}
       </nav>
 
       <section className="box-section">
+        <div className="section-heading"><div><span className="eyebrow">{phase.kicker}</span><h2>{phase.title}</h2><p>{phase.subtitle}</p></div><span className={`status-pill ${evaluation.state}`}>{evaluation.state === 'ok' ? '✓' : evaluation.state === 'bad' ? '×' : '—'}</span></div>
+
         <div className="lunchbox-real">
           <div className="lunchbox-lid"><span></span><span></span><span></span></div>
           <div className="lunchbox-body">
-            <div className="compartment large" onClick={() => setActiveSlot('oneHour')}>
-              <div className="compartment-label">1 HODINU PŘED</div>
-              <div className="food-scene">{selected.oneHour.length ? selected.oneHour.map((food) => <button key={food.name} className="food-piece" onClick={(e) => { e.stopPropagation(); removeFood(food.name) }} title="Odebrat">{food.icon}<small>{food.name}</small></button>) : <div className="empty-hint"><span>+</span><strong>Vyber potraviny</strong><small>klikni na část krabičky</small></div>}</div>
-            </div>
-            <div className="compartment medium" onClick={() => setActiveSlot('morning')}>
-              <div className="compartment-label">RÁNO</div>
-              <div className="food-scene">{selected.morning.length ? selected.morning.map((food) => <button key={food.name} className="food-piece" onClick={(e) => { e.stopPropagation(); removeFood(food.name) }}>{food.icon}<small>{food.name}</small></button>) : <span className="empty-plus">+</span>}</div>
-            </div>
-            <div className="compartment small" onClick={() => setActiveSlot('close')}>
-              <div className="compartment-label">TĚSNĚ PŘED</div>
-              <div className="food-scene">{selected.close.length ? selected.close.map((food) => <button key={food.name} className="food-piece" onClick={(e) => { e.stopPropagation(); removeFood(food.name) }}>{food.icon}<small>{food.name}</small></button>) : <span className="empty-plus">+</span>}</div>
-            </div>
-            <div className="compartment small between-compartment" onClick={() => setActiveSlot('between')}>
-              <div className="compartment-label">MEZI ZÁPASY</div>
-              <div className="food-scene">{selected.between.length ? selected.between.map((food) => <button key={food.name} className="food-piece" onClick={(e) => { e.stopPropagation(); removeFood(food.name) }}>{food.icon}<small>{food.name}</small></button>) : <span className="empty-plus">+</span>}</div>
-            </div>
+            <div className="compartment breakfast-compartment" onClick={() => setActivePhase('breakfast')}><div className="compartment-label">RÁNO · SNÍDANĚ</div><div className="food-scene">{(selected.breakfast || []).map((food) => <button key={food.id} className="food-piece" onClick={(e) => { e.stopPropagation(); toggleFood(food) }}>{food.icon}<small>{food.name}</small></button>)}{!selected.breakfast?.length && <span className="empty-plus">+</span>}</div></div>
+            <div className="compartment early-compartment" onClick={() => setActivePhase('early')}><div className="compartment-label">1–2 H PŘED</div><div className="food-scene">{(selected.early || []).map((food) => <button key={food.id} className="food-piece" onClick={(e) => { e.stopPropagation(); toggleFood(food) }}>{food.icon}<small>{food.name}</small></button>)}{!selected.early?.length && <span className="empty-plus">+</span>}</div></div>
+            <div className="compartment close-compartment" onClick={() => setActivePhase('close')}><div className="compartment-label">30–60 MIN PŘED</div><div className="food-scene">{(selected.close || []).map((food) => <button key={food.id} className="food-piece" onClick={(e) => { e.stopPropagation(); toggleFood(food) }}>{food.icon}<small>{food.name}</small></button>)}{!selected.close?.length && <span className="empty-plus">+</span>}</div></div>
+            <div className="compartment between-compartment" onClick={() => setActivePhase('between')}><div className="compartment-label">MEZI ZÁPASY</div><div className="food-scene">{(selected.between || []).map((food) => <button key={food.id} className="food-piece" onClick={(e) => { e.stopPropagation(); toggleFood(food) }}>{food.icon}<small>{food.name}</small></button>)}{!selected.between?.length && <span className="empty-plus">+</span>}</div></div>
           </div>
         </div>
       </section>
 
-      <section className="picker-section">
-        <div className="picker-title"><div><span className="eyebrow">VYBER PRO TUTO ČÁST DNE</span><h2>{active.title}</h2><p>{active.subtitle} · {active.time}</p></div><span className="selected-count">{selected[activeSlot].length} vybráno</span></div>
-        <div className="food-grid">{foods[activeSlot].map((food) => { const chosen = selected[activeSlot].some((item) => item.name === food.name); return <button key={food.name} className={`food-option ${chosen ? 'chosen' : ''}`} onClick={() => toggleFood(food)}><span className="food-photo">{food.icon}</span><strong>{food.name}</strong>{chosen && <b>✓</b>}</button> })}</div>
-      </section>
+      <section className="picker-section"><div className="picker-title"><div><span className="eyebrow">VYBER POTRAVINY</span><h2>{phase.title}</h2><p>{phase.subtitle}</p></div><span className="selected-count">{selectedFoods.length} vybráno</span></div><div className="food-grid">{availableFoods.map((food) => { const chosen = selectedFoods.some((item) => item.id === food.id); return <button key={food.id} className={`food-option ${chosen ? 'chosen' : ''}`} onClick={() => toggleFood(food)}><span className="food-photo">{food.icon}</span><strong>{food.name}</strong><small>{food.note}</small>{chosen && <b>✓</b>}</button> })}</div></section>
 
-      <section className={`nutrition-result ${status.state}`}>
-        <div className="result-icon">{status.state === 'ok' ? '✓' : status.state === 'warning' ? '×' : 'i'}</div>
-        <div><strong>{status.title}</strong><p>{status.text}</p></div>
-      </section>
-
-      <section className="next-game"><div><span className="eyebrow">DALŠÍ ZÁPAS</span><strong>09:30</strong></div><div className="next-game-rule">Po zápase doplň energii a tekutiny. Čím méně času do dalšího zápasu, tím lehčí svačina.</div></section>
-      <footer>FuelBox v0.2 · orientační průvodce, ne individuální zdravotní doporučení</footer>
+      <section className={`nutrition-result ${evaluation.state}`}><div className="result-icon">{evaluation.state === 'ok' ? '✓' : evaluation.state === 'bad' ? '×' : 'i'}</div><div><strong>{evaluation.title}</strong><p>{evaluation.text}</p></div></section>
+      <section className="rule-card"><span>💡</span><div><strong>{phase.rule}</strong><p>Nemusíš sníst všechno, co je v nabídce. Vyber to, co dítě zná, chutná mu a dobře snáší.</p></div></section>
+      <footer>FuelBox v0.3 · orientační průvodce sportovní výživou</footer>
     </main>
   )
 }
