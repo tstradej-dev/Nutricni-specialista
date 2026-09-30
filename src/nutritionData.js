@@ -60,9 +60,9 @@ export const foods = [
 ]
 
 export const phaseGuidance = {
-  breakfast: { requireCarb: true, preferProtein: false, maxItems: 5 },
-  early: { requireCarb: true, preferProtein: false, maxItems: 3 },
-  close: { requireCarb: true, preferProtein: false, maxItems: 2 },
-  between: { requireCarb: true, preferProtein: false, maxItems: 4 },
-  recovery: { requireCarb: true, requireProtein: true, maxItems: 5 },
+  breakfast: { requireCarb: true, preferProtein: false, maxItems: 4, tooMuchText: 'Na jednu snídani už máš příliš mnoho různých položek. Vyber hlavní zdroj sacharidů, případně jednu bílkovinnou složku a ovoce podle chuti.' },
+  early: { requireCarb: true, preferProtein: false, maxItems: 2, tooMuchText: '1–2 hodiny před zápasem není potřeba skládat velkou svačinu. Jedna až dvě vhodné položky obvykle stačí.' },
+  close: { requireCarb: true, preferProtein: false, maxItems: 1, tooMuchText: '30–60 minut před zápasem už není potřeba velká svačina. Jedna lehká sacharidová volba může úplně stačit.' },
+  between: { requireCarb: true, preferProtein: false, maxItems: 3, tooMuchText: 'Tohle už je na jednu svačinu zbytečně mnoho. Podle délky pauzy vyber lehkou svačinu, nebo při delší pauze malé jídlo.' },
+  recovery: { requireCarb: true, requireProtein: true, maxItems: 4, tooMuchText: 'Na regeneraci není potřeba skládat všechno najednou. Vyber zdroj sacharidů a bílkoviny a velikost přizpůsob hladu a dalšímu jídlu.' },
 }
