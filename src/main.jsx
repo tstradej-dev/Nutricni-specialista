@@ -114,6 +114,7 @@ function App() {
           </div>
         </div>
       </section>
+      <div className={`nutrition-result ${evaluation.state}`}><div className="result-icon">{evaluation.state === 'ok' ? '✓' : evaluation.state === 'bad' ? '×' : '—'}</div><div><strong>{evaluation.title}</strong><p>{evaluation.text}</p></div></div>
       <section className="picker-section">
         {activePhase === 'between' && <div className="rule-card" style={{ marginBottom: 18 }}><span>⏱</span><div><strong>Za jak dlouho hraješ znovu?</strong><div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>{[20, 45, 60, 90, 120, 180].map((minutes) => <button key={minutes} onClick={() => setBetweenMinutes(minutes)} style={{ border: 0, borderRadius: 999, padding: '8px 13px', fontWeight: 700, background: minutes === betweenMinutes ? '#18395f' : '#eef2f6', color: minutes === betweenMinutes ? '#fff' : '#18395f' }}>{minutes >= 60 ? `${minutes / 60} h` : `${minutes} min`}</button>)}</div><p style={{ marginTop: 8 }}>Podle pauzy aplikace upraví doporučenou velikost svačiny.</p></div></div>}
         <div className="picker-title"><div><span className="eyebrow">VYBER POTRAVINY</span><h2>{phase.title}</h2><p>{phase.rule}</p></div><span className="selected-count">{selectedFoods.length} vybráno</span></div>
@@ -124,7 +125,6 @@ function App() {
           </button>)}
         </div>
         {message && <div className="rule-card"><span>↔</span><div><strong>Pro pestrost</strong><p>{message}</p></div></div>}
-        <div className={`nutrition-result ${evaluation.state}`}><div className="result-icon">{evaluation.state === 'ok' ? '✓' : evaluation.state === 'bad' ? '×' : '—'}</div><div><strong>{evaluation.title}</strong><p>{evaluation.text}</p></div></div>
         <div className="rule-card hydration-card"><span>💧</span><div><strong>{hydration.title}</strong><p>{hydration.text}</p><small>{hydration.note}</small></div></div>
       </section>
       <section className="rule-card"><span>i</span><div><strong>Jak aplikace přemýšlí</strong><p>{phase.rule} Hodnocení je orientační a nepočítá individuální energetickou potřebu dítěte. Potraviny je vhodné vyzkoušet nejdříve při tréninku, ne poprvé v den turnaje.</p></div></section>
