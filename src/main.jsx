@@ -97,7 +97,7 @@ function App() {
       <header className="topbar"><div className="brand-mark">FUEL<span>BOX</span></div><div className="top-count">{selectedCount} položek</div></header>
       <section className="intro"><span className="eyebrow">SPORTOVNÍ DEN</span><h1>Poskládej<br /><em>krabičku.</em></h1><p>Vyber jídlo pro jednotlivé části dne. Aplikace sleduje kombinaci, pestrost a také to, aby toho nebylo zbytečně moc.</p></section>
       <nav className="phase-tabs" aria-label="Části sportovního dne">
-        {nutritionPhases.map((item) => <button key={item.id} className={item.id === activePhase ? 'active' : ''} onClick={() => { setActivePhase(item.id); setMessage('') }}><span>{item.kicker}</span><strong>{item.title}</strong></button>)}
+        {nutritionPhases.filter((item) => item.id !== 'early').map((item) => <button key={item.id} className={item.id === activePhase ? 'active' : ''} onClick={() => { setActivePhase(item.id); setMessage('') }}><span>{item.kicker}</span><strong>{item.title}</strong></button>)}
       </nav>
       <section className="box-section">
         <div className="section-heading"><div><span className="eyebrow">{phase.kicker}</span><h2>{phase.title}</h2><p>{phase.id === 'breakfast' ? 'Snídaně ideálně 1–2 hodiny před prvním zápasem' : phase.subtitle}</p></div><span className={`status-pill ${evaluation.state}`}>{evaluation.state === 'ok' ? '✓' : evaluation.state === 'bad' ? '×' : '—'}</span></div>
