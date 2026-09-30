@@ -6,7 +6,6 @@ import { nutritionPhases, foods, phaseGuidance } from './nutritionData'
 
 const IMG = 'https://cdn.jsdelivr.net/gh/hfg-gmuend/openmoji@17.0.0/color/svg/'
 const image = (code) => `${IMG}${code}.svg`
-
 const availableFor = (phaseId) => foods.filter((food) => food.phases.includes(phaseId))
 
 function evaluate(phase, selectedFoods) {
@@ -17,15 +16,19 @@ function evaluate(phase, selectedFoods) {
 
   if (!selectedFoods.length) return { state: 'empty', title: 'Krabička čeká', text: 'Vyber vhodnou potravinu pro tuto část dne.' }
 
+  // MVP guard: more foods should not automatically mean a better meal.
+  // Individual portions/energy needs will be added later with age and body-size data.
+  if (selectedFoods.length > guidance.maxItems) {
+    return { state: 'bad', title: '× Už je toho moc', text: guidance.tooMuchText }
+  }
+
   if (phase.id === 'close') {
     if (!hasCarb) return { state: 'bad', title: '× Málo sacharidů', text: 'Těsně před výkonem je vhodná lehká sacharidová volba.' }
-    if (selectedFoods.length > guidance.maxItems) return { state: 'bad', title: '× Zbytečně mnoho najednou', text: 'Těsně před zápasem nemusíš skládat velkou svačinu. Jedna lehká volba může úplně stačit.' }
     return { state: 'ok', title: '✓ Vhodná svačina', text: 'Jedna lehká sacharidová volba může před zápasem stačit. Není potřeba přidávat další jídlo jen kvůli počtu položek.' }
   }
 
   if (phase.id === 'early') {
     if (!hasCarb) return { state: 'bad', title: '× Málo sacharidů', text: 'Přidej lehký zdroj sacharidů.' }
-    if (selectedFoods.length > guidance.maxItems) return { state: 'bad', title: '× Už je toho hodně', text: '1–2 hodiny před výkonem může být vhodná malá svačina. Velikost přizpůsob hladu a tomu, co dobře snášíš.' }
     return { state: 'ok', title: '✓ Vhodná svačina', text: easyFoods ? 'Máš lehce stravitelný zdroj energie. Další potraviny nejsou nutné jen proto, aby jich bylo více.' : 'Máš zdroj sacharidů. Pokud ti tato potravina před výkonem dobře sedí, může stačit.' }
   }
 
@@ -38,11 +41,10 @@ function evaluate(phase, selectedFoods) {
 
   if (phase.id === 'breakfast') {
     if (!hasCarb) return { state: 'bad', title: '× Málo sacharidů', text: 'Snídaně před sportovním dnem by měla mít výrazný zdroj sacharidů.' }
-    return { state: 'ok', title: '✓ Dobrá snídaně', text: hasProtein ? 'Sacharidy i bílkovina jsou zastoupené.' : 'Sacharidy máš. Bílkovinu můžeš přidat podle chuti a tolerance.' }
+    return { state: 'ok', title: '✓ Dobře složená snídaně', text: hasProtein ? 'Máš hlavní zdroj sacharidů a také bílkovinu. Není potřeba přidávat další jídlo jen proto, aby byla krabička plnější.' : 'Máš sacharidy. Bílkovinu můžeš přidat podle chuti a tolerance.' }
   }
 
   if (!hasCarb) return { state: 'bad', title: '× Málo sacharidů', text: 'Při turnaji je potřeba průběžně doplňovat energii. Pokud je další zápas brzy, vyber lehkou variantu.' }
-  if (selectedFoods.length > guidance.maxItems) return { state: 'bad', title: '× Už je toho hodně', text: 'Při krátké pauze není potřeba velká svačina. Při delší pauze můžeš zvolit větší jídlo.' }
   return { state: 'ok', title: '✓ Vhodně poskládané', text: 'Máš zdroj sacharidů. Velikost a kombinaci přizpůsob času do dalšího zápasu a hladu.' }
 }
 
@@ -82,16 +84,12 @@ function App() {
   return (
     <main className="app-shell">
       <header className="topbar"><div className="brand-mark">FUEL<span>BOX</span></div><div className="top-count">{selectedCount} položek</div></header>
-
-      <section className="intro"><span className="eyebrow">SPORTOVNÍ DEN</span><h1>Poskládej<br /><em>krabičku.</em></h1><p>Vyber jídlo pro jednotlivé části dne. Aplikace sleduje kombinaci, pestrost a vhodnost pro daný okamžik.</p></section>
-
+      <section className="intro"><span className="eyebrow">SPORTOVNÍ DEN</span><h1>Poskládej<br /><em>krabičku.</em></h1><p>Vyber jídlo pro jednotlivé části dne. Aplikace sleduje kombinaci, pestrost a také to, aby toho nebylo zbytečně moc.</p></section>
       <nav className="phase-tabs" aria-label="Části sportovního dne">
         {nutritionPhases.map((item) => <button key={item.id} className={item.id === activePhase ? 'active' : ''} onClick={() => { setActivePhase(item.id); setMessage('') }}><span>{item.kicker}</span><strong>{item.title}</strong></button>)}
       </nav>
-
       <section className="box-section">
         <div className="section-heading"><div><span className="eyebrow">{phase.kicker}</span><h2>{phase.title}</h2><p>{phase.subtitle}</p></div><span className={`status-pill ${evaluation.state}`}>{evaluation.state === 'ok' ? '✓' : evaluation.state === 'bad' ? '×' : '—'}</span></div>
-
         <div className="lunchbox-real">
           <div className="lunchbox-lid"><span></span><span></span><span></span></div>
           <div className="lunchbox-body">
@@ -105,7 +103,6 @@ function App() {
           </div>
         </div>
       </section>
-
       <section className="picker-section">
         <div className="picker-title"><div><span className="eyebrow">VYBER POTRAVINY</span><h2>{phase.title}</h2><p>{phase.rule}</p></div><span className="selected-count">{selectedFoods.length} vybráno</span></div>
         <div className="food-grid">
@@ -117,7 +114,6 @@ function App() {
         {message && <div className="rule-card"><span>↔</span><div><strong>Pro pestrost</strong><p>{message}</p></div></div>}
         <div className={`nutrition-result ${evaluation.state}`}><div className="result-icon">{evaluation.state === 'ok' ? '✓' : evaluation.state === 'bad' ? '×' : '—'}</div><div><strong>{evaluation.title}</strong><p>{evaluation.text}</p></div></div>
       </section>
-
       <section className="rule-card"><span>i</span><div><strong>Jak aplikace přemýšlí</strong><p>{phase.rule} Hodnocení je orientační a nepočítá individuální energetickou potřebu dítěte. Potraviny je vhodné vyzkoušet nejdříve při tréninku, ne poprvé v den turnaje.</p></div></section>
       <footer>FuelBox · jednoduché plánování sportovní výživy pro mladé sportovce</footer>
     </main>
